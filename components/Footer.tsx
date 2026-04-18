@@ -65,11 +65,9 @@ export default function Footer() {
 
           {/* Brand col */}
           <div className="lg:col-span-1 space-y-5">
-            <Link href="/" className="inline-flex items-center gap-3 group" aria-label="AJK Insurance Home">
-              <img src="/logo.png" alt="AJK Logo" className="w-9 h-10 object-contain" />
-              <div>
-                <div className="text-white font-bold text-[15px] leading-tight">AJK Insurance</div>
-                <div className="text-cyan-500 text-[10px] tracking-widest uppercase font-semibold">Lead Generation</div>
+            <Link href="/" className="inline-flex items-center group" aria-label="AJK Insurance Home">
+              <div className="w-20 h-20 rounded-3xl bg-white/10 p-3 flex items-center justify-center shadow-xl shadow-cyan-500/10">
+                <img src="/logo.png" alt="AJK Logo" className="w-full h-full object-contain" />
               </div>
             </Link>
 

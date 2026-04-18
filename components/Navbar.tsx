@@ -56,19 +56,11 @@ export default function Navbar() {
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center gap-3 outline-none group"
+              className="flex items-center justify-center outline-none group"
               aria-label="AJK Insurance — Home"
             >
-              {/* Custom Logo */}
-              <img src="/logo.png" alt="AJK Logo" className="w-10 h-12 object-contain" />
-              {/* Text */}
-              <div className="flex flex-col leading-none">
-                <span className="text-white font-extrabold text-2xl tracking-wide">
-                  AJK
-                </span>
-                <span className="text-white/75 font-semibold text-[10px] tracking-[0.3em] uppercase mt-0.5">
-                  Insurance
-                </span>
+              <div className="w-16 h-16 rounded-2xl bg-white/10 p-2 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+                <img src="/logo.png" alt="AJK Logo" className="w-full h-full object-contain" />
               </div>
             </Link>
 

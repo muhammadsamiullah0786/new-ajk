@@ -60,7 +60,7 @@ export default function Navbar() {
               aria-label="AJK Insurance — Home"
             >
               {/* Custom Logo */}
-              <img src="/Logo.png" alt="AJK Logo" className="w-10 h-12 object-contain" />
+              <img src="/logo.png" alt="AJK Logo" className="w-10 h-12 object-contain" />
               {/* Text */}
               <div className="flex flex-col leading-none">
                 <span className="text-white font-extrabold text-2xl tracking-wide">

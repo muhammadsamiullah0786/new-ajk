@@ -59,21 +59,8 @@ export default function Navbar() {
               className="flex items-center gap-3 outline-none group"
               aria-label="AJK Insurance — Home"
             >
-              {/* Shield SVG */}
-              <svg width="42" height="48" viewBox="0 0 42 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M21 2L3 9.5v15C3 35.5 11 44 21 47c10-3 18-11.5 18-22.5v-15L21 2z"
-                  fill="url(#shield_grad)" />
-                <path d="M21 2L3 9.5v15C3 35.5 11 44 21 47c10-3 18-11.5 18-22.5v-15L21 2z"
-                  fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1" />
-                <polyline points="13,24 19,31 30,18"
-                  stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-                <defs>
-                  <linearGradient id="shield_grad" x1="3" y1="2" x2="39" y2="47" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#4a90d9" />
-                    <stop offset="100%" stopColor="#1a3fa6" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              {/* Custom Logo */}
+              <img src="/Logo.png" alt="AJK Logo" className="w-10 h-12 object-contain" />
               {/* Text */}
               <div className="flex flex-col leading-none">
                 <span className="text-white font-extrabold text-2xl tracking-wide">

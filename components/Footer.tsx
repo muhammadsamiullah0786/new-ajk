@@ -66,20 +66,7 @@ export default function Footer() {
           {/* Brand col */}
           <div className="lg:col-span-1 space-y-5">
             <Link href="/" className="inline-flex items-center gap-3 group" aria-label="AJK Insurance Home">
-              <svg width="36" height="42" viewBox="0 0 42 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="flex-shrink-0">
-                <path d="M21 2L3 9.5v15C3 35.5 11 44 21 47c10-3 18-11.5 18-22.5v-15L21 2z"
-                  fill="url(#footer_shield_grad)" />
-                <path d="M21 2L3 9.5v15C3 35.5 11 44 21 47c10-3 18-11.5 18-22.5v-15L21 2z"
-                  fill="none" stroke="rgba(255,255,255,0.20)" strokeWidth="1" />
-                <polyline points="13,24 19,31 30,18"
-                  stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-                <defs>
-                  <linearGradient id="footer_shield_grad" x1="3" y1="2" x2="39" y2="47" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#4a90d9" />
-                    <stop offset="100%" stopColor="#1a3fa6" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <img src="/Logo.png" alt="AJK Logo" className="w-9 h-10 object-contain" />
               <div>
                 <div className="text-white font-bold text-[15px] leading-tight">AJK Insurance</div>
                 <div className="text-cyan-500 text-[10px] tracking-widest uppercase font-semibold">Lead Generation</div>
@@ -166,9 +153,10 @@ export default function Footer() {
             <ul className="space-y-4">
               {[
                 { icon: Phone, label: 'Phone', value: CONTACT.phone, href: CONTACT.phoneHref },
-                { icon: Mail,  label: 'Email', value: CONTACT.email, href: CONTACT.emailHref },
+                { icon: Mail,  label: 'Email', value: 'admin@ajk-insurance.com', href: 'mailto:admin@ajk-insurance.com' },
+                { icon: Mail,  label: 'Email', value: 'khurshid.khan@ajkinsurance.com', href: 'mailto:khurshid.khan@ajkinsurance.com' },
               ].map(({ icon: Icon, label, value, href }) => (
-                <li key={label}>
+                <li key={label + value}>
                   <a href={href} className="flex items-start gap-3 text-slate-500 hover:text-white transition-colors duration-200 group">
                     <span
                       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 group-hover:border-cyan-500/30"

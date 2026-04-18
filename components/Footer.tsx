@@ -4,8 +4,8 @@ import { Phone, Mail, MapPin, MessageCircle, ChevronRight, Linkedin, Instagram, 
 const CONTACT = {
   phone:     '+1 (845) 662-8071',
   phoneHref: 'tel:+18456628071',
-  email:     'khan@ajk-insurance.com',
-  emailHref: 'mailto:khan@ajk-insurance.com',
+  email:     'support@ajk-insurance.com',
+  emailHref: 'mailto:support@ajk-insurance.com',
   whatsapp:  'https://wa.me/18456628071',
   address:   'United States — Licensed Nationwide',
   // TODO: Replace placeholder URLs with real social page URLs

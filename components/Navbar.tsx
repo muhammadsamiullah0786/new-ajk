@@ -59,9 +59,14 @@ export default function Navbar() {
               className="flex items-center justify-center outline-none group"
               aria-label="AJK Insurance — Home"
             >
-              <div className="w-16 h-16 rounded-2xl bg-white/10 p-2 flex items-center justify-center shadow-lg shadow-cyan-500/10">
-                <img src="/logo.png" alt="AJK Logo" className="w-full h-full object-contain" />
-              </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94, rotate: -2 }}
+                animate={{ opacity: 1, scale: [0.98, 1.02, 0.99, 1], rotate: [0, 1.4, -0.8, 0] }}
+                transition={{ duration: 4.2, ease: 'easeInOut', repeat: Infinity, repeatType: 'loop', delay: 0.2 }}
+                className="w-[190px] h-[62px] rounded-[28px] bg-gradient-to-r from-white/10 via-cyan-300/10 to-slate-950/30 px-3 flex items-center justify-center shadow-[0_18px_58px_-20px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/20 border border-white/10 transition-transform duration-300 hover:scale-105"
+              >
+                <img src="/logo.jpeg" alt="AJK Logo" className="w-full h-full object-contain" />
+              </motion.div>
             </Link>
 
             {/* Desktop nav */}
@@ -160,20 +165,9 @@ export default function Navbar() {
                 className="flex items-center justify-between px-6 h-16"
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
               >
-                <div className="flex items-center gap-2.5">
-                  <svg width="30" height="34" viewBox="0 0 42 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M21 2L3 9.5v15C3 35.5 11 44 21 47c10-3 18-11.5 18-22.5v-15L21 2z" fill="url(#shield_m)" />
-                    <polyline points="13,24 19,31 30,18" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <defs>
-                      <linearGradient id="shield_m" x1="3" y1="2" x2="39" y2="47" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stopColor="#4a90d9" />
-                        <stop offset="100%" stopColor="#1a3fa6" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="flex flex-col leading-none">
-                    <span className="text-white font-extrabold text-lg tracking-wide">AJK</span>
-                    <span className="text-white/70 font-semibold text-[9px] tracking-[0.3em] uppercase mt-0.5">Insurance</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-[150px] h-[42px] rounded-2xl bg-white/10 p-2 flex items-center justify-center shadow-xl shadow-cyan-500/10 border border-white/10">
+                    <img src="/logo.jpeg" alt="AJK Logo" className="w-full h-full object-contain" />
                   </div>
                 </div>
                 <button

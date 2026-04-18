@@ -66,8 +66,8 @@ export default function Footer() {
           {/* Brand col */}
           <div className="lg:col-span-1 space-y-5">
             <Link href="/" className="inline-flex items-center group" aria-label="AJK Insurance Home">
-              <div className="w-20 h-20 rounded-3xl bg-white/10 p-3 flex items-center justify-center shadow-xl shadow-cyan-500/10">
-                <img src="/logo.png" alt="AJK Logo" className="w-full h-full object-contain" />
+              <div className="w-[240px] h-[82px] rounded-[32px] bg-gradient-to-r from-white/10 via-cyan-300/10 to-slate-950/30 p-3 flex items-center justify-center shadow-[0_22px_58px_-26px_rgba(34,211,238,0.40)] ring-1 ring-cyan-400/20 border border-white/10 transition-transform duration-300 hover:scale-[1.03] animate-[pulse_6s_ease-in-out_infinite]">
+                <img src="/logo.jpeg" alt="AJK Logo" className="w-full h-full object-contain" />
               </div>
             </Link>
 

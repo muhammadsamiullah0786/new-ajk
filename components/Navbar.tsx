@@ -56,17 +56,13 @@ export default function Navbar() {
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center justify-center outline-none group"
+              className="flex items-center gap-3 outline-none group mr-6"
               aria-label="AJK Insurance — Home"
             >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.94, rotate: -2 }}
-                animate={{ opacity: 1, scale: [0.98, 1.02, 0.99, 1], rotate: [0, 1.4, -0.8, 0] }}
-                transition={{ duration: 4.2, ease: 'easeInOut', repeat: Infinity, repeatType: 'loop', delay: 0.2 }}
-                className="w-[190px] h-[62px] rounded-[28px] bg-gradient-to-r from-white/10 via-cyan-300/10 to-slate-950/30 px-3 flex items-center justify-center shadow-[0_18px_58px_-20px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/20 border border-white/10 transition-transform duration-300 hover:scale-105"
-              >
-                <img src="/logo.jpeg" alt="AJK Logo" className="w-full h-full object-contain" />
-              </motion.div>
+              <img src="/logo-transparent.png" alt="AJK Logo" className="h-[50px] w-auto object-contain" />
+              <span className="text-white text-sm font-semibold tracking-[0.18em] uppercase leading-none">
+                AJK Insurance
+              </span>
             </Link>
 
             {/* Desktop nav */}
@@ -166,8 +162,11 @@ export default function Navbar() {
                 style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-[150px] h-[42px] rounded-2xl bg-white/10 p-2 flex items-center justify-center shadow-xl shadow-cyan-500/10 border border-white/10">
-                    <img src="/logo.jpeg" alt="AJK Logo" className="w-full h-full object-contain" />
+                  <div className="flex items-center gap-3">
+                    <img src="/logo-transparent.png" alt="AJK Logo" className="h-[34px] w-auto object-contain" />
+                    <span className="text-white text-sm font-semibold tracking-[0.14em] uppercase leading-none">
+                      AJK Insurance
+                    </span>
                   </div>
                 </div>
                 <button

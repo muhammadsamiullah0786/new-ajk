@@ -65,9 +65,15 @@ export default function Footer() {
 
           {/* Brand col */}
           <div className="lg:col-span-1 space-y-5">
-            <Link href="/" className="inline-flex items-center group" aria-label="AJK Insurance Home">
-              <div className="w-[240px] h-[82px] rounded-[32px] bg-gradient-to-r from-white/10 via-cyan-300/10 to-slate-950/30 p-3 flex items-center justify-center shadow-[0_22px_58px_-26px_rgba(34,211,238,0.40)] ring-1 ring-cyan-400/20 border border-white/10 transition-transform duration-300 hover:scale-[1.03] animate-[pulse_6s_ease-in-out_infinite]">
-                <img src="/logo.jpeg" alt="AJK Logo" className="w-full h-full object-contain" />
+            <Link href="/" className="inline-flex items-center gap-3 group" aria-label="AJK Insurance Home">
+              <img src="/logo-transparent.png" alt="AJK Logo" className="h-[60px] w-auto object-contain" />
+              <div>
+                <p className="text-white text-xl font-semibold tracking-[0.02em] uppercase leading-none">
+                  AJK Insurance
+                </p>
+                <p className="text-slate-400 text-xs uppercase tracking-[0.24em] mt-1">
+                  Lead Generation
+                </p>
               </div>
             </Link>
 
@@ -153,6 +159,7 @@ export default function Footer() {
                 { icon: Phone, label: 'Phone', value: CONTACT.phone, href: CONTACT.phoneHref },
                 { icon: Mail,  label: 'Email', value: 'admin@ajk-insurance.com', href: 'mailto:admin@ajk-insurance.com' },
                 { icon: Mail,  label: 'Email', value: 'khurshid.khan@ajkinsurance.com', href: 'mailto:khurshid.khan@ajkinsurance.com' },
+                { icon: Mail,  label: 'Email', value: 'support@ajk-insurance.com', href: 'mailto:support@ajk-insurance.com' },
               ].map(({ icon: Icon, label, value, href }) => (
                 <li key={label + value}>
                   <a href={href} className="flex items-start gap-3 text-slate-500 hover:text-white transition-colors duration-200 group">

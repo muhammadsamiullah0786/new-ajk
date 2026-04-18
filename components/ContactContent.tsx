@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Phone, Mail, MapPin, MessageCircle, Clock,
@@ -21,8 +21,8 @@ const CONTACT_DETAILS = [
   {
     icon: Mail,
     label: 'Email',
-    value: 'khan@ajk-insurance.com',
-    href:  'mailto:khan@ajk-insurance.com',
+    value: 'support@ajk-insurance.com',
+    href:  'mailto:support@ajk-insurance.com',
     description: 'We reply within 24 hours',
   },
   {
@@ -49,20 +49,38 @@ const CONTACT_DETAILS = [
 ]
 
 interface ContactForm {
-  name:    string
-  email:   string
-  phone:   string
-  subject: string
-  message: string
+  name:         string
+  email:        string
+  phone:        string
+  subject:      string
+  message:      string
+  honeypot?:    string
+  formStartAt?: string
 }
 
-const INIT: ContactForm = { name: '', email: '', phone: '', subject: '', message: '' }
+const INIT: ContactForm = {
+  name: '',
+  email: '',
+  phone: '',
+  subject: '',
+  message: '',
+  honeypot: '',
+  formStartAt: '',
+}
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
 export default function ContactContent() {
   const [form,   setForm]   = useState<ContactForm>(INIT)
   const [errors, setErrors] = useState<Partial<ContactForm>>({})
   const [status, setStatus] = useState<Status>('idle')
+  const [submissionError, setSubmissionError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      formStartAt: new Date().toISOString(),
+    }))
+  }, [])
 
   function validate(): boolean {
     const next: Partial<ContactForm> = {}
@@ -79,12 +97,57 @@ export default function ContactContent() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
+
+    if (form.honeypot?.trim()) {
+      console.warn('[ContactContent] Bot detected via honeypot', { honeypot: form.honeypot })
+      setSubmissionError('Unable to send your message right now. Please try again later.')
+      setStatus('error')
+      return
+    }
+
     setStatus('submitting')
-    // TODO: replace with actual form handler (API route, EmailJS, Formspree, etc.)
-    console.log('Contact form submission:', form)
-    await new Promise(r => setTimeout(r, 1000))
-    setStatus('success')
-    setForm(INIT)
+    setSubmissionError(null)
+
+    const payload = {
+      ...form,
+      submittedAt: new Date().toISOString(),
+    }
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        const message = data?.error || 'Unable to send your message right now. Please try again later.'
+        console.error('[ContactContent] Contact submit failed', {
+          email: form.email,
+          subject: form.subject,
+          status: response.status,
+          message,
+        })
+        setSubmissionError(message)
+        setStatus('error')
+        return
+      }
+
+      console.info('[ContactContent] Contact submitted successfully', {
+        email: form.email,
+        subject: form.subject,
+        submittedAt: payload.submittedAt,
+      })
+      setStatus('success')
+      setForm(INIT)
+    } catch (err) {
+      console.error('[ContactContent] Contact form submit failed:', err)
+      setSubmissionError('Unable to send your message right now. Please check your network and try again.')
+      setStatus('error')
+    }
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -210,6 +273,12 @@ export default function ContactContent() {
                   We aim to respond to all inquiries within 24 hours.
                 </p>
 
+                {status === 'error' && submissionError ? (
+                  <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-4 mb-4 text-sm text-red-200">
+                    {submissionError}
+                  </div>
+                ) : null}
+
                 {status === 'success' ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -244,6 +313,17 @@ export default function ContactContent() {
                     aria-label="Contact form"
                     className="space-y-5"
                   >
+                    <input
+                      type="text"
+                      name="honeypot"
+                      value={form.honeypot}
+                      onChange={handleChange}
+                      autoComplete="off"
+                      tabIndex={-1}
+                      aria-hidden="true"
+                      className="sr-only"
+                    />
+                    <input type="hidden" name="formStartAt" value={form.formStartAt ?? ''} />
                     {/* Name + Email row */}
                     <motion.div variants={fadeInUp} className="grid sm:grid-cols-2 gap-5">
                       {[

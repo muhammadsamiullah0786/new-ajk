@@ -44,9 +44,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await sendContactNotification(result.data)
+    const emailId = await sendContactNotification(result.data)
 
     console.info('[POST /api/contact] Contact email sent', {
+      emailId,
       ip,
       email: result.data.email,
       subject: result.data.subject,

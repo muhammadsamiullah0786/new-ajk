@@ -1,6 +1,46 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+const DEFAULT_NOTIFICATION_FROM = 'AJK Support <support@notify.ajk-insurance.com>'
+
+interface ResendErrorLike {
+  message?: string
+  name?: string
+  statusCode?: number
+}
+
+function getConfiguredSupportEmail(): string {
+  const to = process.env.SUPPORT_EMAIL
+  if (!to) throw new Error('SUPPORT_EMAIL env variable is not set')
+  return to
+}
+
+async function sendEmailOrThrow(payload: Parameters<typeof resend.emails.send>[0]): Promise<string> {
+  const { data, error } = await resend.emails.send(payload)
+
+  if (error) {
+    const resendError = error as ResendErrorLike
+    const details = [
+      resendError.statusCode ? `status ${resendError.statusCode}` : null,
+      resendError.name ?? null,
+      resendError.message ?? null,
+    ]
+      .filter(Boolean)
+      .join(' - ')
+
+    throw new Error(`Resend send failed${details ? `: ${details}` : ''}`)
+  }
+
+  if (!data?.id) {
+    throw new Error('Resend send failed: missing email id in success response')
+  }
+
+  return data.id
+}
+
+function getNotificationFrom(): string {
+  return process.env.SUPPORT_EMAIL_FROM ?? DEFAULT_NOTIFICATION_FROM
+}
 
 export interface NewLeadEmailData {
   id: string
@@ -17,9 +57,8 @@ export interface NewLeadEmailData {
   sourcePage: string
 }
 
-export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<void> {
-  const to = process.env.SUPPORT_EMAIL
-  if (!to) throw new Error('SUPPORT_EMAIL env variable is not set')
+export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<string> {
+  const to = getConfiguredSupportEmail()
 
   const rows = [
     ['Full Name',             lead.fullName],
@@ -92,8 +131,8 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<v
 </body>
 </html>`
 
-  await resend.emails.send({
-    from:    process.env.EMAIL_FROM ?? 'AJK Leads <onboarding@resend.dev>',
+  return sendEmailOrThrow({
+    from:    getNotificationFrom(),
     to:      [to],
     subject: `New Lead: ${lead.fullName} — ${lead.leadTypeNeeded}`,
     html,
@@ -111,9 +150,8 @@ export interface ContactEmailData {
   submittedAt?: string
 }
 
-export async function sendContactNotification(contact: ContactEmailData): Promise<void> {
-  const to = process.env.SUPPORT_EMAIL
-  if (!to) throw new Error('SUPPORT_EMAIL env variable is not set')
+export async function sendContactNotification(contact: ContactEmailData): Promise<string> {
+  const to = getConfiguredSupportEmail()
 
   const submittedAt = contact.submittedAt ? new Date(contact.submittedAt) : new Date()
   const submittedAtText = `${submittedAt.toLocaleString('en-US', { timeZone: 'UTC', hour12: true })} UTC`
@@ -175,8 +213,8 @@ export async function sendContactNotification(contact: ContactEmailData): Promis
 </body>
 </html>`
 
-  await resend.emails.send({
-    from:    process.env.EMAIL_FROM ?? 'AJK Support <support@ajk-insurance.com>',
+  return sendEmailOrThrow({
+    from:    getNotificationFrom(),
     to:      [to],
     replyTo: contact.email,
     subject: `Contact Form Message: ${contact.subject}`,

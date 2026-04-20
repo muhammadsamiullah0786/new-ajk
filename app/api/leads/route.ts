@@ -25,7 +25,12 @@ export async function POST(req: NextRequest) {
 
     // 2. Send notification email — failure does NOT affect the response
     try {
-      await sendNewLeadNotification(lead)
+      const emailId = await sendNewLeadNotification(lead)
+      console.info('[POST /api/leads] Email notification sent', {
+        emailId,
+        leadId: lead.id,
+        supportEmail: process.env.SUPPORT_EMAIL,
+      })
     } catch (emailErr) {
       console.error('[POST /api/leads] Email notification failed (lead saved):', emailErr)
     }

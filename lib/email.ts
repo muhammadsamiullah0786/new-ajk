@@ -1,19 +1,32 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const DEFAULT_NOTIFICATION_FROM = 'AJK Support <support@notify.ajk-insurance.com>'
-
 interface ResendErrorLike {
   message?: string
   name?: string
   statusCode?: number
 }
 
-function getConfiguredSupportEmail(): string {
-  const to = process.env.SUPPORT_EMAIL
-  if (!to) throw new Error('SUPPORT_EMAIL env variable is not set')
-  return to
+const RESEND_API_KEY = process.env.RESEND_API_KEY ?? ''
+const EMAIL_FROM = process.env.EMAIL_FROM?.trim() || 'onboarding@resend.dev'
+const SUPPORT_EMAIL_ENV = process.env.SUPPORT_EMAIL?.trim()
+const SUPPORT_EMAIL_DEFAULT = 'support@ajk-insurance.com'
+const SUPPORT_EMAIL = SUPPORT_EMAIL_DEFAULT
+
+if (!RESEND_API_KEY) {
+  console.warn('[email] RESEND_API_KEY is not set. Resend email delivery will fail.')
 }
+if (!EMAIL_FROM || !EMAIL_FROM.includes('@')) {
+  console.error('[email] EMAIL_FROM is invalid or not set. Using default.')
+}
+if (!SUPPORT_EMAIL_ENV) {
+  console.warn(`[email] SUPPORT_EMAIL is not set. Using enforced recipient ${SUPPORT_EMAIL_DEFAULT}.`)
+} else if (SUPPORT_EMAIL_ENV.toLowerCase() !== SUPPORT_EMAIL_DEFAULT) {
+  console.warn(
+    `[email] SUPPORT_EMAIL is set to ${SUPPORT_EMAIL_ENV}, but email delivery is enforced to ${SUPPORT_EMAIL_DEFAULT}.`,
+  )
+}
+
+const resend = new Resend(RESEND_API_KEY)
 
 async function sendEmailOrThrow(payload: Parameters<typeof resend.emails.send>[0]): Promise<string> {
   const { data, error } = await resend.emails.send(payload)
@@ -38,10 +51,6 @@ async function sendEmailOrThrow(payload: Parameters<typeof resend.emails.send>[0
   return data.id
 }
 
-function getNotificationFrom(): string {
-  return process.env.SUPPORT_EMAIL_FROM ?? DEFAULT_NOTIFICATION_FROM
-}
-
 export interface NewLeadEmailData {
   id: string
   fullName: string
@@ -58,7 +67,7 @@ export interface NewLeadEmailData {
 }
 
 export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<string> {
-  const to = getConfiguredSupportEmail()
+  const to = SUPPORT_EMAIL
 
   const rows = [
     ['Full Name',             lead.fullName],
@@ -117,7 +126,7 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
           <td style="background:#020c1b;border:1px solid rgba(0,204,238,0.2);border-top:none;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
             <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'}/admin/leads/${lead.id}"
                style="display:inline-block;background:#00ccee;color:#020c1b;font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;">
-              View Full Lead in Dashboard →
+              View Full Lead in Dashboard â†’
             </a>
             <p style="margin:16px 0 0;font-size:11px;color:#334155;">
               This is an automated notification. Do not reply to this email.
@@ -131,12 +140,25 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
 </body>
 </html>`
 
-  return sendEmailOrThrow({
-    from:    getNotificationFrom(),
-    to:      [to],
-    subject: `New Lead: ${lead.fullName} — ${lead.leadTypeNeeded}`,
-    html,
-  })
+  console.info('[email] Sending new lead notification', { to, from: EMAIL_FROM, leadId: lead.id })
+  try {
+    const emailId = await sendEmailOrThrow({
+      from: EMAIL_FROM,
+      to: [to],
+      subject: `New Lead: ${lead.fullName} â€” ${lead.leadTypeNeeded}`,
+      html,
+    })
+    console.info('[email] New lead notification sent', { to, from: EMAIL_FROM, leadId: lead.id, emailId })
+    return emailId
+  } catch (error) {
+    console.error('[email] Failed to send new lead notification', {
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
+      to,
+      from: EMAIL_FROM,
+      leadId: lead.id,
+    })
+    throw error
+  }
 }
 
 export interface ContactEmailData {
@@ -151,7 +173,7 @@ export interface ContactEmailData {
 }
 
 export async function sendContactNotification(contact: ContactEmailData): Promise<string> {
-  const to = getConfiguredSupportEmail()
+  const to = SUPPORT_EMAIL
 
   const submittedAt = contact.submittedAt ? new Date(contact.submittedAt) : new Date()
   const submittedAtText = `${submittedAt.toLocaleString('en-US', { timeZone: 'UTC', hour12: true })} UTC`
@@ -213,11 +235,24 @@ export async function sendContactNotification(contact: ContactEmailData): Promis
 </body>
 </html>`
 
-  return sendEmailOrThrow({
-    from:    getNotificationFrom(),
-    to:      [to],
-    replyTo: contact.email,
-    subject: `Contact Form Message: ${contact.subject}`,
-    html,
-  })
+  console.info('[email] Sending contact notification', { to, from: EMAIL_FROM, replyTo: contact.email })
+  try {
+    const emailId = await sendEmailOrThrow({
+      from: EMAIL_FROM,
+      to: [to],
+      replyTo: contact.email,
+      subject: `Contact Form Message: ${contact.subject}`,
+      html,
+    })
+    console.info('[email] Contact notification sent', { to, from: EMAIL_FROM, replyTo: contact.email, emailId })
+    return emailId
+  } catch (error) {
+    console.error('[email] Failed to send contact notification', {
+      error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
+      to,
+      from: EMAIL_FROM,
+      replyTo: contact.email,
+    })
+    throw error
+  }
 }

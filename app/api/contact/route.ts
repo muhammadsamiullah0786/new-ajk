@@ -44,10 +44,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const emailId = await sendContactNotification(result.data)
+    try {
+      await sendContactNotification(result.data)
+    } catch (emailErr) {
+      console.error('[POST /api/contact] Email notification failed:', {
+        error: emailErr,
+        email: result.data.email,
+        subject: result.data.subject,
+      })
+      return NextResponse.json({ error: 'Email delivery failed, but submission recorded' }, { status: 500 })
+    }
 
     console.info('[POST /api/contact] Contact email sent', {
-      emailId,
       ip,
       email: result.data.email,
       subject: result.data.subject,

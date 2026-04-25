@@ -32,7 +32,11 @@ export async function POST(req: NextRequest) {
         supportEmail: process.env.SUPPORT_EMAIL,
       })
     } catch (emailErr) {
-      console.error('[POST /api/leads] Email notification failed (lead saved):', emailErr)
+      console.error('[POST /api/leads] Email notification failed (lead saved):', {
+        error: emailErr,
+        leadId: lead.id,
+        supportEmail: process.env.SUPPORT_EMAIL ?? 'support@ajk-insurance.com',
+      })
     }
 
     return NextResponse.json({ id: lead.id }, { status: 201 })

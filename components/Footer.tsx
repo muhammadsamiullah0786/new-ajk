@@ -4,13 +4,13 @@ import { Phone, Mail, MapPin, MessageCircle, ChevronRight, Linkedin, Instagram, 
 const CONTACT = {
   phone:     '+1 (845) 662-8071',
   phoneHref: 'tel:+18456628071',
-  email:     'support@ajk-insurance.com',
-  emailHref: 'mailto:support@ajk-insurance.com',
+  email:     'khurshid.khan@ajk-insurance.com',
+  emailHref: 'mailto:khurshid.khan@ajk-insurance.com',
   whatsapp:  'https://wa.me/18456628071',
   address:   'United States — Licensed Nationwide',
   // TODO: Replace placeholder URLs with real social page URLs
-  linkedin:  'https://www.linkedin.com/company/ajk-insurance-brokers',
-  instagram: 'https://www.instagram.com/ajkinsurance',
+  linkedin:  'https://www.linkedin.com/company/ajk-insurance/?viewAsMember=true',
+  instagram: 'https://www.instagram.com/ajk_insurance?igsh=OWo3MmViOGZneW8z',
   facebook:  'https://www.facebook.com/ajkinsurance',
   twitter:   'https://twitter.com/ajkinsurance',
 }

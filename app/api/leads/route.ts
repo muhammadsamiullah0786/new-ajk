@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { leadSchema } from '@/lib/validations'
 import { sendNewLeadNotification } from '@/lib/email'
+import { errorResponse } from '@/lib/api-errors'
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,7 +42,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ id: lead.id }, { status: 201 })
   } catch (err) {
-    console.error('[POST /api/leads]', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return errorResponse('POST /api/leads', err)
   }
 }

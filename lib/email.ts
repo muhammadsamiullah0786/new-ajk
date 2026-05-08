@@ -26,9 +26,24 @@ if (!SUPPORT_EMAIL_ENV) {
   )
 }
 
-const resend = new Resend(RESEND_API_KEY)
+// Lazy-initialise Resend so module load does not crash when the API key is
+// missing (e.g. during `next build` page-data collection in environments where
+// the secret is not yet wired up). The error surfaces only when a route
+// actually tries to send mail.
+let resendClient: Resend | null = null
+function getResend(): Resend {
+  if (resendClient) return resendClient
+  if (!RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY environment variable is not set')
+  }
+  resendClient = new Resend(RESEND_API_KEY)
+  return resendClient
+}
 
-async function sendEmailOrThrow(payload: Parameters<typeof resend.emails.send>[0]): Promise<string> {
+type SendEmailPayload = Parameters<Resend['emails']['send']>[0]
+
+async function sendEmailOrThrow(payload: SendEmailPayload): Promise<string> {
+  const resend = getResend()
   const { data, error } = await resend.emails.send(payload)
 
   if (error) {

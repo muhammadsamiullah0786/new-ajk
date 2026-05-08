@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
 import { loginSchema } from '@/lib/validations'
 import { signToken, buildAuthCookie } from '@/lib/auth'
+import { errorResponse } from '@/lib/api-errors'
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,7 +32,6 @@ export async function POST(req: NextRequest) {
       { status: 200, headers: { 'Set-Cookie': buildAuthCookie(token) } },
     )
   } catch (err) {
-    console.error('[POST /api/admin/login]', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return errorResponse('POST /api/admin/login', err)
   }
 }

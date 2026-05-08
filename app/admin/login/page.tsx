@@ -27,8 +27,9 @@ export default function AdminLoginPage() {
         router.push('/admin')
         router.refresh()
       } else {
-        const data = await res.json()
-        setError(data.error ?? 'Login failed')
+        const data = await res.json().catch(() => ({}))
+        const message = data.error ?? 'Login failed'
+        setError(data.code ? `${message} (${data.code})` : message)
       }
     } catch {
       setError('Network error. Please try again.')

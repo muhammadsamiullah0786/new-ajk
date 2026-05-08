@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { contactSchema } from '@/lib/validations'
 import { sendContactNotification } from '@/lib/email'
+import { errorResponse } from '@/lib/api-errors'
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,7 +66,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 201 })
   } catch (err) {
-    console.error('[POST /api/contact] send failed', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return errorResponse('POST /api/contact', err)
   }
 }

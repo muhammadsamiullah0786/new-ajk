@@ -141,7 +141,7 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
           <td style="background:#020c1b;border:1px solid rgba(0,204,238,0.2);border-top:none;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
             <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'}/admin/leads/${lead.id}"
                style="display:inline-block;background:#00ccee;color:#020c1b;font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;">
-              View Full Lead in Dashboard â†’
+              View Full Lead in Dashboard →
             </a>
             <p style="margin:16px 0 0;font-size:11px;color:#334155;">
               This is an automated notification. Do not reply to this email.
@@ -155,15 +155,28 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
 </body>
 </html>`
 
-  console.info('[email] Sending new lead notification', { to, from: EMAIL_FROM, leadId: lead.id })
+  console.info('[email] Sending new lead notification', {
+    to,
+    from: EMAIL_FROM,
+    replyTo: lead.workEmail,
+    leadId: lead.id,
+  })
   try {
     const emailId = await sendEmailOrThrow({
       from: EMAIL_FROM,
       to: [to],
-      subject: `New Lead: ${lead.fullName} â€” ${lead.leadTypeNeeded}`,
+      // Hitting "Reply" in the support inbox goes straight to the prospect.
+      replyTo: lead.workEmail,
+      subject: `New Lead: ${lead.fullName} — ${lead.leadTypeNeeded}`,
       html,
     })
-    console.info('[email] New lead notification sent', { to, from: EMAIL_FROM, leadId: lead.id, emailId })
+    console.info('[email] New lead notification sent', {
+      to,
+      from: EMAIL_FROM,
+      replyTo: lead.workEmail,
+      leadId: lead.id,
+      emailId,
+    })
     return emailId
   } catch (error) {
     console.error('[email] Failed to send new lead notification', {

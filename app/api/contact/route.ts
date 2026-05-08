@@ -48,12 +48,10 @@ export async function POST(req: NextRequest) {
     try {
       await sendContactNotification(result.data)
     } catch (emailErr) {
-      console.error('[POST /api/contact] Email notification failed:', {
-        error: emailErr,
-        email: result.data.email,
-        subject: result.data.subject,
-      })
-      return NextResponse.json({ error: 'Email delivery failed, but submission recorded' }, { status: 500 })
+      // Surface the actual Resend / config error to the caller via the same
+      // diagnostic classifier the outer catch uses, instead of collapsing every
+      // email failure into a generic message.
+      return errorResponse('POST /api/contact email', emailErr)
     }
 
     console.info('[POST /api/contact] Contact email sent', {

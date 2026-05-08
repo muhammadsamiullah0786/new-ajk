@@ -34,9 +34,27 @@ interface Classified {
   detail?: string
 }
 
-/** Take the first non-empty line of a multi-line Prisma error, capped. */
-function firstLine(message: string, max = 200): string {
-  const line = message.split('\n').map(s => s.trim()).find(s => s.length > 0) ?? ''
+/**
+ * Pick the most informative line out of a multi-line Prisma error. Prisma
+ * wraps the actual reason inside boilerplate like:
+ *
+ *     Invalid `prisma.adminUser.findUnique()` invocation:
+ *
+ *     Can't reach database server at `host:port`
+ *
+ *     Please make sure your database server is running at `host:port`.
+ *
+ * We want the "Can't reach…" line, not the wrapper. Skip empty lines and
+ * lines that are just Prisma framing.
+ */
+function firstLine(message: string, max = 240): string {
+  const lines = message
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0)
+    .filter(s => !/^Invalid .*invocation:?$/i.test(s))
+    .filter(s => !/^at\s/i.test(s)) // skip stack frames if any leak in
+  const line = lines[0] ?? ''
   return line.length > max ? line.slice(0, max) + '…' : line
 }
 

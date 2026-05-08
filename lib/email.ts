@@ -7,24 +7,38 @@ interface ResendErrorLike {
 }
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY ?? ''
-const EMAIL_FROM = process.env.EMAIL_FROM?.trim() || 'onboarding@resend.dev'
-const SUPPORT_EMAIL_ENV = process.env.SUPPORT_EMAIL?.trim()
-const SUPPORT_EMAIL_DEFAULT = 'support@ajk-insurance.com'
-const SUPPORT_EMAIL = SUPPORT_EMAIL_DEFAULT
+
+// The verified Resend domain — see resend.com/domains. Senders MUST be on
+// this domain or Resend rejects with a 403 "validation_error" / sandbox
+// message.
+const VERIFIED_EMAIL_DOMAIN = 'ajk-insurance.com'
+
+// All lead and contact notifications are sent to and from this single
+// support address so inbound and reply traffic stays consolidated. The
+// recipient is enforced (not env-configurable) on purpose; the sender can
+// be overridden via EMAIL_FROM as long as it stays on the verified domain.
+const SUPPORT_EMAIL = `support@${VERIFIED_EMAIL_DOMAIN}`
+const EMAIL_FROM_DEFAULT = `AJK Support <${SUPPORT_EMAIL}>`
+const EMAIL_FROM = process.env.EMAIL_FROM?.trim() || EMAIL_FROM_DEFAULT
 
 if (!RESEND_API_KEY) {
   console.warn('[email] RESEND_API_KEY is not set. Resend email delivery will fail.')
 }
-if (!EMAIL_FROM || !EMAIL_FROM.includes('@')) {
-  console.error('[email] EMAIL_FROM is invalid or not set. Using default.')
-}
-if (!SUPPORT_EMAIL_ENV) {
-  console.warn(`[email] SUPPORT_EMAIL is not set. Using enforced recipient ${SUPPORT_EMAIL_DEFAULT}.`)
-} else if (SUPPORT_EMAIL_ENV.toLowerCase() !== SUPPORT_EMAIL_DEFAULT) {
-  console.warn(
-    `[email] SUPPORT_EMAIL is set to ${SUPPORT_EMAIL_ENV}, but email delivery is enforced to ${SUPPORT_EMAIL_DEFAULT}.`,
+
+// Refuse to send from anything but the verified domain. Otherwise Resend
+// silently puts the account in sandbox mode and only the registered Resend
+// account email can receive notifications - which is exactly the bug we
+// just spent ages diagnosing.
+if (!EMAIL_FROM.toLowerCase().includes(`@${VERIFIED_EMAIL_DOMAIN}`)) {
+  console.error(
+    `[email] EMAIL_FROM (${EMAIL_FROM}) is not on the verified domain ${VERIFIED_EMAIL_DOMAIN}. ` +
+    `Resend will reject the send. Using default ${EMAIL_FROM_DEFAULT} instead.`,
   )
 }
+
+const RESOLVED_EMAIL_FROM = EMAIL_FROM.toLowerCase().includes(`@${VERIFIED_EMAIL_DOMAIN}`)
+  ? EMAIL_FROM
+  : EMAIL_FROM_DEFAULT
 
 // Lazy-initialise Resend so module load does not crash when the API key is
 // missing (e.g. during `next build` page-data collection in environments where
@@ -157,13 +171,13 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
 
   console.info('[email] Sending new lead notification', {
     to,
-    from: EMAIL_FROM,
+    from: RESOLVED_EMAIL_FROM,
     replyTo: lead.workEmail,
     leadId: lead.id,
   })
   try {
     const emailId = await sendEmailOrThrow({
-      from: EMAIL_FROM,
+      from: RESOLVED_EMAIL_FROM,
       to: [to],
       // Hitting "Reply" in the support inbox goes straight to the prospect.
       replyTo: lead.workEmail,
@@ -172,7 +186,7 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
     })
     console.info('[email] New lead notification sent', {
       to,
-      from: EMAIL_FROM,
+      from: RESOLVED_EMAIL_FROM,
       replyTo: lead.workEmail,
       leadId: lead.id,
       emailId,
@@ -182,7 +196,7 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
     console.error('[email] Failed to send new lead notification', {
       error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
       to,
-      from: EMAIL_FROM,
+      from: RESOLVED_EMAIL_FROM,
       leadId: lead.id,
     })
     throw error
@@ -263,22 +277,22 @@ export async function sendContactNotification(contact: ContactEmailData): Promis
 </body>
 </html>`
 
-  console.info('[email] Sending contact notification', { to, from: EMAIL_FROM, replyTo: contact.email })
+  console.info('[email] Sending contact notification', { to, from: RESOLVED_EMAIL_FROM, replyTo: contact.email })
   try {
     const emailId = await sendEmailOrThrow({
-      from: EMAIL_FROM,
+      from: RESOLVED_EMAIL_FROM,
       to: [to],
       replyTo: contact.email,
       subject: `Contact Form Message: ${contact.subject}`,
       html,
     })
-    console.info('[email] Contact notification sent', { to, from: EMAIL_FROM, replyTo: contact.email, emailId })
+    console.info('[email] Contact notification sent', { to, from: RESOLVED_EMAIL_FROM, replyTo: contact.email, emailId })
     return emailId
   } catch (error) {
     console.error('[email] Failed to send contact notification', {
       error: error instanceof Error ? { message: error.message, stack: error.stack } : error,
       to,
-      from: EMAIL_FROM,
+      from: RESOLVED_EMAIL_FROM,
       replyTo: contact.email,
     })
     throw error

@@ -26,6 +26,18 @@ interface Classified {
    * missing-DB can be distinguished without runtime log access.
    */
   prismaCode?: string
+  /**
+   * Short, sanitized excerpt of the underlying error message for cases where
+   * the regex/code lookup misses. Always truncated and never includes the
+   * raw connection string.
+   */
+  detail?: string
+}
+
+/** Take the first non-empty line of a multi-line Prisma error, capped. */
+function firstLine(message: string, max = 200): string {
+  const line = message.split('\n').map(s => s.trim()).find(s => s.length > 0) ?? ''
+  return line.length > max ? line.slice(0, max) + '…' : line
 }
 
 /**
@@ -55,7 +67,7 @@ function extractPrismaCode(message: string): string | undefined {
  * (`PrismaClientInitializationError`, `PrismaClientKnownRequestError`, etc.).
  */
 export function classifyError(err: unknown): Classified {
-  const e = err as { name?: string; code?: string; message?: string } | null
+  const e = err as { name?: string; code?: string; errorCode?: string; message?: string } | null
   const name = e?.name ?? ''
   const message = e?.message ?? ''
 
@@ -94,13 +106,20 @@ export function classifyError(err: unknown): Classified {
       hostHint = ' (DATABASE_URL is malformed and could not be parsed)'
     }
 
-    const prismaCode = extractPrismaCode(message) ?? (e?.code as string | undefined)
+    // PrismaClientInitializationError exposes the P-code as `errorCode`, not
+    // `code`. Some bundlers/Prisma versions strip it; fall back to scanning the
+    // message text for "Pxxxx".
+    const prismaCode =
+      (e?.errorCode as string | undefined) ??
+      (e?.code as string | undefined) ??
+      extractPrismaCode(message)
     const hint = prismaCode ? PRISMA_HINTS[prismaCode] : undefined
 
     return {
       code: 'DB_UNAVAILABLE',
       status: 503,
       prismaCode,
+      detail: prismaCode ? undefined : firstLine(message),
       message:
         'Database is unreachable.' + hostHint +
         (prismaCode ? ` Prisma reports ${prismaCode}.` : '') +
@@ -152,13 +171,14 @@ export function classifyError(err: unknown): Classified {
  * server-side via `console.error` so the original stack stays in runtime logs.
  */
 export function errorResponse(routeTag: string, err: unknown): NextResponse {
-  const { code, status, message, prismaCode } = classifyError(err)
-  const e = err as { name?: string; code?: string; message?: string } | null
+  const { code, status, message, prismaCode, detail } = classifyError(err)
+  const e = err as { name?: string; code?: string; errorCode?: string; message?: string } | null
 
   console.error(`[${routeTag}]`, {
     code,
     prismaCode,
     name: e?.name,
+    rawErrorCode: e?.errorCode,
     rawCode: e?.code,
     message: e?.message,
   })
@@ -168,6 +188,7 @@ export function errorResponse(routeTag: string, err: unknown): NextResponse {
       error: message,
       code,
       ...(prismaCode ? { prismaCode } : {}),
+      ...(detail ? { detail } : {}),
     },
     { status },
   )

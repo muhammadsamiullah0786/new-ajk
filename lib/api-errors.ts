@@ -169,10 +169,17 @@ export function classifyError(err: unknown): Classified {
   }
 
   if (message.startsWith('Resend send failed')) {
+    // The thrown message already encodes Resend's status code / name / reason
+    // (see lib/email.ts sendEmailOrThrow). Surface it so the operator can see
+    // whether it is wrong API key, unverified sender domain, rate limit, etc.
+    const reason = message.replace(/^Resend send failed:?\s*/, '').trim()
     return {
       code: 'EMAIL_FAILED',
       status: 502,
-      message: 'Email delivery failed.',
+      detail: reason || undefined,
+      message: reason
+        ? `Email delivery failed: ${reason}`
+        : 'Email delivery failed (no reason returned by Resend).',
     }
   }
 

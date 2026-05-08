@@ -9,9 +9,10 @@ import { NextResponse } from 'next/server'
  * the *category* of failure.
  */
 export type ApiErrorCode =
-  | 'DB_UNAVAILABLE'      // Prisma cannot connect / query the database
+  | 'DB_NOT_CONFIGURED'   // DATABASE_URL env var not set on this deployment
+  | 'DB_UNAVAILABLE'      // DATABASE_URL is set but Prisma cannot connect
   | 'DB_SCHEMA'           // Prisma client schema does not match the database
-  | 'CONFIG_ERROR'        // Required server env var is missing
+  | 'CONFIG_ERROR'        // Required non-DB env var is missing
   | 'EMAIL_FAILED'        // Email provider rejected the message
   | 'INTERNAL_ERROR'      // Anything else
 
@@ -32,10 +33,47 @@ export function classifyError(err: unknown): Classified {
   const message = e?.message ?? ''
 
   if (name === 'PrismaClientInitializationError' || message.includes("Can't reach database server")) {
+    const dbUrl = process.env.DATABASE_URL?.trim() ?? ''
+    const directUrl = process.env.DIRECT_URL?.trim() ?? ''
+
+    if (!dbUrl) {
+      return {
+        code: 'DB_NOT_CONFIGURED',
+        status: 503,
+        message:
+          'DATABASE_URL is not set on this deployment. Add it under Vercel ' +
+          '> Settings > Environment Variables (Production scope) and redeploy.',
+      }
+    }
+
+    if (message.includes('Environment variable not found') && message.includes('DIRECT_URL')) {
+      return {
+        code: 'DB_NOT_CONFIGURED',
+        status: 503,
+        message:
+          'DIRECT_URL is not set on this deployment. The Prisma schema requires ' +
+          'both DATABASE_URL and DIRECT_URL. Add DIRECT_URL in Vercel and redeploy.',
+      }
+    }
+
+    // DATABASE_URL is set but Prisma cannot reach the host. Surface the host
+    // (no credentials) so the operator can see which DB the runtime is trying
+    // to dial.
+    let hostHint = ''
+    try {
+      const u = new URL(dbUrl)
+      hostHint = ` (runtime is dialing ${u.hostname}:${u.port || '5432'})`
+    } catch {
+      hostHint = ' (DATABASE_URL is malformed and could not be parsed)'
+    }
+
     return {
       code: 'DB_UNAVAILABLE',
       status: 503,
-      message: 'Database is unreachable. Check DATABASE_URL and that the database is running.',
+      message:
+        'Database is unreachable.' + hostHint + ' Check the database is running, ' +
+        'the credentials are correct, and the host is reachable from Vercel. ' +
+        (directUrl ? '' : 'DIRECT_URL is also empty - set it if your provider needs it.'),
     }
   }
 

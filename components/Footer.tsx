@@ -8,11 +8,10 @@ const CONTACT = {
   emailHref: 'mailto:khurshid.khan@ajk-insurance.com',
   whatsapp:  'https://wa.me/18456628071',
   address:   'United States — Licensed Nationwide',
-  // TODO: Replace placeholder URLs with real social page URLs
   linkedin:  'https://www.linkedin.com/company/ajk-insurance/?viewAsMember=true',
   instagram: 'https://www.instagram.com/ajk_insurance?igsh=OWo3MmViOGZneW8z',
-  facebook:  'https://www.facebook.com/ajkinsurance',
-  twitter:   'https://twitter.com/ajkinsurance',
+  facebook:  'https://www.facebook.com/profile.php?id=61560331590019',
+  twitter:   'https://x.com/AJK_INSURANCE',
 }
 
 const quickLinks = [

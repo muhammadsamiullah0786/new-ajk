@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fadeInUp, staggerContainer, viewportOnce } from '@/lib/animations'
+import { CONTACT_MIN_NAME, CONTACT_MIN_SUBJECT, CONTACT_MIN_MESSAGE } from '@/lib/validations'
 
 // TODO: update all contact details
 const CONTACT_DETAILS = [
@@ -83,13 +84,32 @@ export default function ContactContent() {
   }, [])
 
   function validate(): boolean {
+    // Mirror the backend contact schema (lib/validations.ts) so the user gets
+    // inline feedback before submission instead of a server-side 400.
     const next: Partial<ContactForm> = {}
-    if (!form.name.trim())  next.name  = 'Name is required.'
-    if (!form.email.trim()) next.email = 'Email is required.'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    const name = form.name.trim()
+    const email = form.email.trim()
+    const subject = form.subject.trim()
+    const message = form.message.trim()
+
+    if (name.length < CONTACT_MIN_NAME) {
+      next.name = name.length === 0
+        ? 'Name is required.'
+        : `Name must be at least ${CONTACT_MIN_NAME} characters.`
+    }
+    if (email.length === 0) next.email = 'Email is required.'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       next.email = 'Please enter a valid email address.'
-    if (!form.subject.trim()) next.subject = 'Subject is required.'
-    if (!form.message.trim()) next.message = 'Message is required.'
+    if (subject.length < CONTACT_MIN_SUBJECT) {
+      next.subject = subject.length === 0
+        ? 'Subject is required.'
+        : `Subject must be at least ${CONTACT_MIN_SUBJECT} characters.`
+    }
+    if (message.length < CONTACT_MIN_MESSAGE) {
+      next.message = message.length === 0
+        ? 'Message is required.'
+        : `Message must be at least ${CONTACT_MIN_MESSAGE} characters.`
+    }
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -123,13 +143,29 @@ export default function ContactContent() {
       })
 
       if (!response.ok) {
-        const data = await response.json().catch(() => null)
+        const data: { error?: string; issues?: Record<string, string[] | undefined> } | null =
+          await response.json().catch(() => null)
         const message = data?.error || 'Unable to send your message right now. Please try again later.'
+
+        // If the API returned per-field issues (validation 400), attach them
+        // inline so each input shows its own error instead of the user
+        // staring at a single banner with no clue which field is wrong.
+        if (data?.issues && typeof data.issues === 'object') {
+          const next: Partial<ContactForm> = {}
+          for (const [field, msgs] of Object.entries(data.issues)) {
+            if (field in INIT && Array.isArray(msgs) && msgs.length > 0) {
+              next[field as keyof ContactForm] = msgs[0]
+            }
+          }
+          if (Object.keys(next).length > 0) setErrors(next)
+        }
+
         console.error('[ContactContent] Contact submit failed', {
           email: form.email,
           subject: form.subject,
           status: response.status,
           message,
+          issues: data?.issues,
         })
         setSubmissionError(message)
         setStatus('error')

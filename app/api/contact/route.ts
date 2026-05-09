@@ -14,12 +14,20 @@ export async function POST(req: NextRequest) {
       'unknown'
 
     if (!result.success) {
-      console.warn('[POST /api/contact] Validation failed', {
-        ip,
-        issues: result.error.flatten().fieldErrors,
-      })
+      const fieldErrors = result.error.flatten().fieldErrors
+      // Build a single human-readable summary so the top-level `error` field
+      // is actionable on its own (the `issues` map is also returned for the
+      // frontend to attach inline messages to specific inputs).
+      const summary = Object.entries(fieldErrors)
+        .map(([field, msgs]) => msgs?.[0] ?? `${field} is invalid`)
+        .filter(Boolean)
+        .join('; ')
+      console.warn('[POST /api/contact] Validation failed', { ip, issues: fieldErrors })
       return NextResponse.json(
-        { error: 'Validation failed', issues: result.error.flatten().fieldErrors },
+        {
+          error: summary || 'Validation failed. Please check the form fields and try again.',
+          issues: fieldErrors,
+        },
         { status: 400 },
       )
     }

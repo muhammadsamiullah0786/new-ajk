@@ -14,12 +14,19 @@ export const leadSchema = z.object({
   sourcePage: z.string().optional(),
 })
 
+// Length thresholds are mirrored in components/ContactContent.tsx so the
+// inline frontend validation matches what the API will accept. Keep them in
+// sync if you change either side.
+export const CONTACT_MIN_NAME = 2
+export const CONTACT_MIN_SUBJECT = 5
+export const CONTACT_MIN_MESSAGE = 10
+
 export const contactSchema = z.object({
-  name: z.string().min(2, 'Name is required'),
-  email: z.string().email('Valid email is required'),
-  phone: z.string().optional(),
-  subject: z.string().min(5, 'Subject is required'),
-  message: z.string().min(10, 'Message is required'),
+  name: z.string().trim().min(CONTACT_MIN_NAME, `Name must be at least ${CONTACT_MIN_NAME} characters`),
+  email: z.string().trim().email('Please enter a valid email address'),
+  phone: z.string().trim().optional(),
+  subject: z.string().trim().min(CONTACT_MIN_SUBJECT, `Subject must be at least ${CONTACT_MIN_SUBJECT} characters`),
+  message: z.string().trim().min(CONTACT_MIN_MESSAGE, `Message must be at least ${CONTACT_MIN_MESSAGE} characters`),
   honeypot: z.string().optional(),
   formStartAt: z.string().optional().refine(
     (value) => !value || !Number.isNaN(Date.parse(value)),

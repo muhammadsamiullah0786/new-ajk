@@ -8,7 +8,6 @@ import ProcessSteps from '@/components/ProcessSteps'
 import Testimonials from '@/components/Testimonials'
 import CTASection from '@/components/CTASection'
 import FAQ from '@/components/FAQ'
-import TeamSection from '@/components/TeamSection'
 import { services } from '@/data/services'
 import { features } from '@/data/features'
 import { ArrowRight, ShieldCheck, Zap, BarChart3, Clock, Lock } from 'lucide-react'
@@ -177,9 +176,6 @@ export default function HomePage() {
 
       {/* ─── 6. Process Steps ─── */}
       <ProcessSteps />
-
-      {/* ─── 6b. Team Preview ─── */}
-      <TeamSection variant="preview" />
 
       {/* ─── 7. Testimonials ─── */}
       <Testimonials />

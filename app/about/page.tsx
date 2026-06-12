@@ -6,7 +6,6 @@ import CTASection from '@/components/CTASection'
 import { features } from '@/data/features'
 import FeatureCard from '@/components/FeatureCard'
 import AboutHeroSection from '@/components/AboutHeroSection'
-import TeamSection from '@/components/TeamSection'
 
 export const metadata: Metadata = {
   title: 'About AJK',
@@ -195,9 +194,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* ── Meet the Team ── */}
-      <TeamSection variant="full" />
 
       {/* ── CTA ── */}
       <CTASection

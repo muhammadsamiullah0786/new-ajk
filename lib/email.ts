@@ -81,7 +81,13 @@ async function sendEmailOrThrow(payload: SendEmailPayload): Promise<string> {
 }
 
 export interface NewLeadEmailData {
-  id: string
+  /**
+   * The database id of the saved lead. Empty/undefined when the lead could not
+   * be persisted (e.g. the database was unavailable) and this email is the only
+   * record — the template adjusts its copy and drops the dashboard link in that
+   * case so support still receives the lead.
+   */
+  id?: string | null
   fullName: string
   companyName: string
   workEmail: string
@@ -97,6 +103,7 @@ export interface NewLeadEmailData {
 
 export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<string> {
   const to = SUPPORT_EMAIL
+  const savedToDb = Boolean(lead.id)
 
   const rows = [
     ['Full Name',             lead.fullName],
@@ -110,7 +117,7 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
     lead.budgetRange          ? ['Budget Range',           lead.budgetRange]          : null,
     lead.notesOrCampaignGoals ? ['Notes / Campaign Goals', lead.notesOrCampaignGoals] : null,
     ['Source Page',           lead.sourcePage],
-    ['Lead ID',               lead.id],
+    savedToDb ? ['Lead ID',   lead.id as string] : null,
   ].filter(Boolean) as [string, string][]
 
   const tableRows = rows
@@ -137,7 +144,7 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
           <td style="background:#020c1b;border:1px solid rgba(0,204,238,0.2);border-radius:12px 12px 0 0;padding:28px 32px;text-align:center;">
             <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#00ccee;">AJK Lead Generation</p>
             <h1 style="margin:0;font-size:22px;font-weight:700;color:#ffffff;">New Lead Submission</h1>
-            <p style="margin:8px 0 0;font-size:13px;color:#64748b;">A new inquiry has been submitted and saved to the database.</p>
+            <p style="margin:8px 0 0;font-size:13px;color:#64748b;">A new inquiry has been submitted through the website.</p>
           </td>
         </tr>
 
@@ -153,12 +160,16 @@ export async function sendNewLeadNotification(lead: NewLeadEmailData): Promise<s
         <!-- CTA -->
         <tr>
           <td style="background:#020c1b;border:1px solid rgba(0,204,238,0.2);border-top:none;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
-            <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'}/admin/leads/${lead.id}"
+            ${
+              savedToDb
+                ? `<a href="${process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'}/admin/leads/${lead.id}"
                style="display:inline-block;background:#00ccee;color:#020c1b;font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;">
-              View Full Lead in Dashboard →
-            </a>
-            <p style="margin:16px 0 0;font-size:11px;color:#334155;">
-              This is an automated notification. Do not reply to this email.
+              View Full Lead in Dashboard &rarr;
+            </a>`
+                : ''
+            }
+            <p style="margin:${savedToDb ? '16px' : '0'} 0 0;font-size:11px;color:#334155;">
+              This is an automated notification. The prospect&rsquo;s email is set as reply-to.
             </p>
           </td>
         </tr>
